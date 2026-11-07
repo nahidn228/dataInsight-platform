@@ -239,8 +239,9 @@ def reset_to_original(dataset_id: str):
     session.applied_transformations = []
     return {"message": "Dataset successfully reset to original state", "total_rows": len(session.active_df)}
 
+@router.get("/{dataset_id}/export")
 @router.post("/{dataset_id}/export")
-def export_dataset(dataset_id: str, format: str = Query("csv", regex="^(csv|xlsx|pdf)$")):
+def export_dataset(dataset_id: str, format: str = Query("csv", pattern="^(csv|xlsx|pdf)$")):
     session = session_manager.get_session(dataset_id)
     if not session or session.active_df is None:
         raise HTTPException(status_code=404, detail="Dataset not found")
