@@ -1,0 +1,26 @@
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Python
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+backend/.pytest_cache/
+*.pyc
+*.pyo
+
+# Uploads / temp storage
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Sample large generated datasets (keep script instead of 100k row csv in git)
+backend/sample_datasets/*.csv
+backend/sample_datasets/*.xlsx
+
+# Environment & OS
+.env
+.env.local
+.DS_Store
+Thumbs.db
