@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { DatasetProvider } from "@/context/DatasetContext";
 import { Sidebar, Navbar } from "@/components/layout/Navigation";
+import { GlobalFilterBar } from "@/components/filters/GlobalFilterBar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
             <div className="flex flex-1 flex-col overflow-hidden">
               <Navbar />
               <main className="flex-1 overflow-y-auto bg-slate-900/50 p-6 md:p-8">
+                <GlobalFilterBar />
                 {children}
               </main>
             </div>
