@@ -15,3 +15,4 @@ export function formatNumber(num: number | null | undefined): string {
   }
   return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 }
+

@@ -166,3 +166,4 @@ export interface FilterCondition {
   value: any;
   value2?: any;
 }
+
