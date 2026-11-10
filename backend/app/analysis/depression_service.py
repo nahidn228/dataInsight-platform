@@ -381,13 +381,6 @@ def analyze_student_depression(
                     primary_color="#6f7d95",
                     data=items
                 ))
-                    factor_column=col,
-                    title="Depression rate by department",
-                    subtitle="Rates are close across departments — no single faculty stands out.",
-                    chart_type="horizontal_bar",
-                    primary_color="#6f7d95",
-                    data=items
-                ))
             elif is_num:
                 # Arbitrary numeric column: create 5 clean quantile or equal bins
                 try:
