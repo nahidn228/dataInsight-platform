@@ -16,6 +16,7 @@ import {
   Download,
 } from "lucide-react";
 import { useDataset } from "@/context/DatasetContext";
+import { useTheme } from "@/context/ThemeContext";
 import { DatasetApi } from "@/lib/api";
 import {
   DepressionAnalysisResponse,
@@ -35,8 +36,18 @@ import {
 } from "recharts";
 import AnalysisConfigurator from "@/components/AnalysisConfigurator";
 
-// Helper to determine storytelling color for each chart bar
-function getStoryBarColor(chartTitle: string, itemName: string, defaultColor: string): string {
+// Helper to format raw or missing table/file names into clean, user-friendly titles
+function cleanDisplayName(rawName?: string): string {
+  if (!rawName || rawName.trim().toLowerCase() in ["", "none", "nan", "null", "untitled", "unnamed"]) {
+    return "Student Lifestyle & Mental Health Dataset";
+  }
+  const stripped = rawName.replace(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}_?/, "");
+  const base = stripped.replace(/\.(csv|xlsx|xls)$/i, "").replace(/[_-]/g, " ").trim();
+  return base ? base.replace(/\b\w/g, (c) => c.toUpperCase()) : "Student Lifestyle & Mental Health Dataset";
+}
+
+// Helper to determine storytelling color for each chart bar with theme awareness
+function getStoryBarColor(chartTitle: string, itemName: string, defaultColor: string, isDark: boolean = true): string {
   const t = chartTitle.toLowerCase();
   const name = itemName.trim();
 
@@ -51,15 +62,15 @@ function getStoryBarColor(chartTitle: string, itemName: string, defaultColor: st
     if (name === "6") {
       return "#fb923c"; // Transition amber
     }
-    return "#f87171"; // Calmer coral baseline
+    return isDark ? "#f87171" : "#e11d48"; // Calmer coral / visible rose
   }
 
   // 2. CGPA Story: Academic Bifurcation at 2.5
   if (t.includes("cgpa") || t.includes("gpa")) {
     if (name === "1.5–2.0" || name === "2.0–2.5" || name.startsWith("<")) {
-      return "#6366f1"; // Royal Indigo: High vulnerability zone ~22%
+      return "#4f46e5"; // Royal Indigo: High vulnerability zone ~22%
     }
-    return "#a5b4fc"; // Gentle Periwinkle: Resilient protective zone ~5.8%
+    return isDark ? "#a5b4fc" : "#818cf8"; // Periwinkle in dark, crisp indigo in light
   }
 
   // 3. Sleep Story: Deprivation Spike (<5h) vs Stabilized Sleep (5h+)
@@ -71,7 +82,7 @@ function getStoryBarColor(chartTitle: string, itemName: string, defaultColor: st
       return "#0d9488"; // Restorative Deep Teal
     }
     if (name === "6–7" || name === "7–8") {
-      return "#10b981"; // Restful Emerald Green: optimal recovery
+      return isDark ? "#10b981" : "#059669"; // Restful Emerald Green: optimal recovery
     }
     return "#14b8a6"; // Oceanic Teal
   }
@@ -79,14 +90,14 @@ function getStoryBarColor(chartTitle: string, itemName: string, defaultColor: st
   // 4. Social Media Story: Gradual Exposure Escalation
   if (t.includes("social") || t.includes("screen")) {
     const palette = [
-      "#fbbf24", // 0-1: Gentle Amber
-      "#f59e0b", // 1-2: Sunset Orange
+      "#f59e0b", // 0-1: Warm Amber
+      "#d97706", // 1-2: Sunset Ochre
       "#ea580c", // 2-3: Warm Tangerine
-      "#d97706", // 3-4: Ochre
-      "#c2410c", // 4-5: Terracotta
-      "#b45309", // 5-6: Deep Bronze
-      "#9a3412", // 6-8: Burnt Rust
-      "#7c2d12", // 8+: Saturated Mahogany
+      "#c2410c", // 3-4: Terracotta
+      "#b45309", // 4-5: Deep Bronze
+      "#9a3412", // 5-6: Burnt Rust
+      "#7c2d12", // 6-8: Saturated Mahogany
+      "#451a03", // 8+: Deep Umber
     ];
     const idx = parseInt(name.charAt(0)) || 0;
     return palette[idx % palette.length];
@@ -95,11 +106,11 @@ function getStoryBarColor(chartTitle: string, itemName: string, defaultColor: st
   // 5. Department Story: Balanced Faculty Harmony
   if (t.includes("department") || t.includes("dept") || t.includes("faculty")) {
     const deptColors: Record<string, string> = {
-      Science: "#0ea5e9",     // Sky Blue
-      Engineering: "#6366f1", // Indigo
-      Arts: "#a855f7",        // Purple
-      Medical: "#14b8a6",     // Teal
-      Business: "#f59e0b",    // Amber
+      Science: "#0284c7",     // Deep Sky Blue
+      Engineering: "#4f46e5", // Indigo
+      Arts: "#9333ea",        // Purple
+      Medical: "#0d9488",     // Teal
+      Business: "#d97706",    // Amber
     };
     return deptColors[name] || defaultColor || "#64748b";
   }
@@ -109,6 +120,16 @@ function getStoryBarColor(chartTitle: string, itemName: string, defaultColor: st
 
 export default function DashboardOverviewPage() {
   const { metadata, datasetId } = useDataset();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
+  // Recharts theme colors
+  const gridStroke = isDark ? "#1e293b" : "#e2e8f0";
+  const axisStroke = isDark ? "#94a3b8" : "#64748b";
+  const tooltipBg = isDark ? "#090d16" : "#ffffff";
+  const tooltipBorder = isDark ? "#334155" : "#cbd5e1";
+  const tooltipColor = isDark ? "#f8fafc" : "#0f172a";
+
   const [analysisData, setAnalysisData] = useState<DepressionAnalysisResponse | null>(null);
   const [config, setConfig] = useState<DynamicAnalysisConfig | undefined>(undefined);
   const [activePillFilters, setActivePillFilters] = useState<Record<string, string>>({});
@@ -265,26 +286,32 @@ export default function DashboardOverviewPage() {
         currentConfig={config}
       />
 
-      {/* Main Consistent Dark Theme Dashboard Canvas */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 lg:p-8 text-slate-100 shadow-2xl backdrop-blur-md transition-all">
+      {/* Main Dashboard Canvas — full theme-aware */}
+      <div
+        className="rounded-3xl p-6 lg:p-8 shadow-2xl backdrop-blur-md transition-all"
+        style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border-subtle)", color: "var(--text-primary)" }}
+      >
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 border-b border-slate-800/90 pb-6">
+        <div
+          className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 pb-6"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-md bg-indigo-500/10 px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-400 border border-indigo-500/20">
+              <span className="inline-flex items-center gap-1 rounded-md bg-indigo-500/10 px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-500 border border-indigo-500/20">
                 <Sparkles className="h-3 w-3" /> Power BI Visual Architecture
               </span>
-              <span className="text-xs text-slate-600">•</span>
-              <span className="text-xs font-semibold text-slate-400 font-mono">
-                {metadata.filename}
+              <span className="text-xs" style={{ color: "var(--text-muted)" }}>•</span>
+              <span className="text-xs font-semibold font-mono" style={{ color: "var(--text-secondary)" }}>
+                {cleanDisplayName(metadata.filename)}
               </span>
             </div>
 
-            <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-white font-serif">
+            <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight font-serif" style={{ color: "var(--text-primary)" }}>
               {currentTargetName.replace(/_/g, " ")} & Lifestyle Intelligence
             </h1>
-            <p className="text-xs lg:text-sm text-slate-400 font-medium pt-0.5">
-              <span className="font-bold text-indigo-400">
+            <p className="text-xs lg:text-sm font-medium pt-0.5" style={{ color: "var(--text-secondary)" }}>
+              <span className="font-bold text-indigo-500">
                 {kpis ? kpis.total_students.toLocaleString() : "100,000"}
               </span>{" "}
               records · active cross-filtered cohort · measuring {currentTargetName.replace(/_/g, " ")} outcomes
@@ -292,31 +319,36 @@ export default function DashboardOverviewPage() {
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="max-w-xs rounded-2xl border border-indigo-500/20 bg-indigo-950/40 p-3.5 text-xs text-indigo-200 leading-relaxed shadow-sm">
-              <span className="font-semibold text-indigo-300 block mb-0.5">
+            <div
+              className="max-w-xs rounded-2xl p-3.5 text-xs leading-relaxed shadow-sm"
+              style={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)" }}
+            >
+              <span className="font-semibold block mb-0.5" style={{ color: "var(--accent-indigo)" }}>
                 Dynamic Cross-Filtering & Column Selection
               </span>
               Top slicers filter every chart simultaneously. Colors tell the story:{" "}
-              <span className="font-bold text-rose-400">Red</span> = high vulnerability,{" "}
-              <span className="font-bold text-emerald-400">Green</span> = protective resilience.
+              <span className="font-bold text-rose-500">Red</span> = high vulnerability,{" "}
+              <span className="font-bold text-emerald-500">Green</span> = protective resilience.
             </div>
 
             <a
               href={DatasetApi.getExportUrl(datasetId, "pdf")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-600/20 px-3.5 py-2.5 text-xs font-bold text-indigo-300 shadow-sm hover:bg-indigo-600/30 hover:text-white transition"
+              className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-xs font-bold shadow-sm transition hover:opacity-80"
+              style={{ backgroundColor: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", color: "var(--accent-indigo)" }}
               title="Download Executive Dashboard & Assessment PDF Report"
             >
-              <Download className="h-3.5 w-3.5 text-indigo-400" /> Export PDF Report
+              <Download className="h-3.5 w-3.5" /> Export PDF Report
             </a>
 
             <button
               onClick={() => setShowConfig(!showConfig)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/90 px-3.5 py-2.5 text-xs font-bold text-slate-200 shadow-sm hover:bg-slate-700 hover:text-white transition"
+              className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-xs font-bold shadow-sm transition hover:opacity-80"
+              style={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border-default)", color: "var(--text-primary)" }}
               title="Customize analysis columns and target"
             >
-              <SlidersHorizontal className="h-3.5 w-3.5 text-indigo-400" /> Choose Columns
+              <SlidersHorizontal className="h-3.5 w-3.5 text-indigo-500" /> Choose Columns
             </button>
           </div>
         </div>
@@ -327,18 +359,17 @@ export default function DashboardOverviewPage() {
             const activeVal = activePillFilters[slicer.column] || "All";
             return (
               <div key={slicer.column} className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                   {slicer.label}
                 </span>
 
                 <div className="flex flex-wrap items-center gap-1.5">
                   <button
                     onClick={() => handlePillClick(slicer.column, "All")}
-                    className={`rounded-full px-3.5 py-1 text-xs font-semibold transition shadow-sm ${
-                      activeVal === "All"
-                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30 border border-indigo-500"
-                        : "bg-slate-800/80 text-slate-300 border border-slate-700/80 hover:bg-slate-700 hover:text-white"
-                    }`}
+                    className="rounded-full px-3.5 py-1 text-xs font-semibold transition shadow-sm"
+                    style={activeVal === "All"
+                      ? { backgroundColor: "#6366f1", color: "#fff", border: "1px solid #818cf8" }
+                      : { backgroundColor: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border-default)" }}
                   >
                     All
                   </button>
@@ -347,11 +378,10 @@ export default function DashboardOverviewPage() {
                     <button
                       key={opt}
                       onClick={() => handlePillClick(slicer.column, opt)}
-                      className={`rounded-full px-3.5 py-1 text-xs font-semibold transition shadow-sm ${
-                        activeVal === opt
-                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30 border border-indigo-500"
-                          : "bg-slate-800/80 text-slate-300 border border-slate-700/80 hover:bg-slate-700 hover:text-white"
-                      }`}
+                      className="rounded-full px-3.5 py-1 text-xs font-semibold transition shadow-sm"
+                      style={activeVal === opt
+                        ? { backgroundColor: "#6366f1", color: "#fff", border: "1px solid #818cf8" }
+                        : { backgroundColor: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border-default)" }}
                     >
                       {opt}
                     </button>
@@ -364,110 +394,108 @@ export default function DashboardOverviewPage() {
           {hasActiveFilters && (
             <button
               onClick={handleResetFilters}
-              className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition shadow-sm"
+              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition shadow-sm"
+              style={{ backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171" }}
             >
-              <RotateCcw className="h-3 w-3 text-rose-400" /> Reset Filters
+              <RotateCcw className="h-3 w-3" /> Reset Filters
             </button>
           )}
 
           {loading && (
-            <div className="flex items-center gap-1.5 text-xs text-indigo-400 font-bold animate-pulse">
-              <RefreshCw className="h-3.5 w-3.5 animate-spin text-indigo-400" /> Recalculating metrics...
+            <div className="flex items-center gap-1.5 text-xs font-bold animate-pulse" style={{ color: "var(--accent-indigo)" }}>
+              <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Recalculating metrics...
             </div>
           )}
         </div>
 
-        {/* 5 Consistent Dark Theme Eye-Soothing KPI Cards */}
+        {/* 5 KPI Cards */}
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {/* Card 1: Total Records / Students */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-sm hover:border-slate-700 transition">
+          {/* Card 1: Total Records */}
+          <div className="relative overflow-hidden rounded-2xl p-4 shadow-sm transition hover:opacity-90"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                Total Records
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-500">Total Records</span>
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                 <Users className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="mt-2 text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
+            <p className="mt-2 text-2xl lg:text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>
               {kpis ? kpis.total_students.toLocaleString() : "—"}
             </p>
-            <p className="mt-1 text-[11px] font-medium text-slate-400">in current selection</p>
+            <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--text-secondary)" }}>in current selection</p>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-500" />
           </div>
 
           {/* Card 2: Positive Outcome Rate */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-sm hover:border-slate-700 transition">
+          <div className="relative overflow-hidden rounded-2xl p-4 shadow-sm transition hover:opacity-90"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-rose-400 truncate max-w-[120px]">
+              <span className="text-xs font-bold uppercase tracking-wider text-rose-500 truncate max-w-[120px]">
                 {currentTargetName.replace(/_/g, " ")} Rate
               </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20">
                 <Activity className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="mt-2 text-2xl lg:text-3xl font-extrabold text-rose-400 tracking-tight">
+            <p className="mt-2 text-2xl lg:text-3xl font-extrabold text-rose-500 tracking-tight">
               {kpis ? `${kpis.depression_rate}%` : "—"}
             </p>
-            <p className="mt-1 text-[11px] font-medium text-slate-400">
+            <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--text-secondary)" }}>
               {kpis ? `${kpis.depressed_count.toLocaleString()} positive records` : ""}
             </p>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-pink-500" />
           </div>
 
-          {/* Card 3: Avg Social Media (Digital Exposure) */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-sm hover:border-slate-700 transition">
+          {/* Card 3: Avg Social Media */}
+          <div className="relative overflow-hidden rounded-2xl p-4 shadow-sm transition hover:opacity-90"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                Avg Social Media
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-500">Avg Social Media</span>
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
                 <Smartphone className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="mt-2 text-2xl lg:text-3xl font-extrabold text-amber-300 tracking-tight">
+            <p className="mt-2 text-2xl lg:text-3xl font-extrabold text-amber-500 tracking-tight">
               {avgSocialMediaFloat} h/day
             </p>
-            <p className="mt-1 text-[11px] font-medium text-slate-400">daily screen exposure</p>
+            <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--text-secondary)" }}>daily screen exposure</p>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
           </div>
 
-          {/* Card 4: Avg Sleep Duration (Rest & Recovery - Actual Float) */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-sm hover:border-slate-700 transition">
+          {/* Card 4: Avg Sleep Hours */}
+          <div className="relative overflow-hidden rounded-2xl p-4 shadow-sm transition hover:opacity-90"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-teal-400">
-                Avg Sleep Hours
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/20">
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-500">Avg Sleep Hours</span>
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-500/10 text-teal-500 border border-teal-500/20">
                 <Moon className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="mt-2 text-2xl lg:text-3xl font-extrabold text-teal-300 tracking-tight">
+            <p className="mt-2 text-2xl lg:text-3xl font-extrabold text-teal-500 tracking-tight">
               {avgSleepHoursFloat} h/night
             </p>
-            <p className="mt-1 text-[11px] font-medium text-slate-400">actual float calculation</p>
+            <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--text-secondary)" }}>actual float calculation</p>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-emerald-500" />
           </div>
 
           {/* Card 5: Avg Stress Level */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-sm hover:border-slate-700 transition">
+          <div className="relative overflow-hidden rounded-2xl p-4 shadow-sm transition hover:opacity-90"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-400">
-                Avg Stress Level
-              </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              <span className="text-xs font-bold uppercase tracking-wider text-purple-500">Avg Stress Level</span>
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/20">
                 <Flame className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="mt-2 text-2xl lg:text-3xl font-extrabold text-purple-300 tracking-tight">
+            <p className="mt-2 text-2xl lg:text-3xl font-extrabold text-purple-500 tracking-tight">
               {avgStressFloat} / 10
             </p>
-            <p className="mt-1 text-[11px] font-medium text-slate-400">self-reported index</p>
+            <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--text-secondary)" }}>self-reported index</p>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-500" />
           </div>
         </div>
 
-        {/* 3-Column Grid of High-Definition Analytical Visuals */}
+        {/* 3-Column Grid of Analytical Visuals — theme-aware */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {charts.map((chart) => {
             const isHorizontal = chart.chart_type === "horizontal_bar";
@@ -476,34 +504,35 @@ export default function DashboardOverviewPage() {
             return (
               <div
                 key={chart.factor_column}
-                className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-sm hover:border-slate-700 transition"
+                className="flex flex-col justify-between rounded-2xl p-5 shadow-sm transition hover:opacity-90"
+                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
               >
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-bold text-white truncate">{chart.title}</h3>
+                    <h3 className="text-sm font-bold truncate" style={{ color: "var(--text-primary)" }}>{chart.title}</h3>
                     {titleLower.includes("stress") && (
-                      <span className="shrink-0 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-extrabold text-rose-400 border border-rose-500/20">
+                      <span className="shrink-0 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-extrabold text-rose-500 border border-rose-500/20">
                         ≥8 Crisis Alert
                       </span>
                     )}
                     {titleLower.includes("cgpa") && (
-                      <span className="shrink-0 rounded-full bg-indigo-500/10 px-2 py-0.5 text-[10px] font-extrabold text-indigo-300 border border-indigo-500/20">
+                      <span className="shrink-0 rounded-full bg-indigo-500/10 px-2 py-0.5 text-[10px] font-extrabold text-indigo-500 border border-indigo-500/20">
                         2.5 GPA Threshold
                       </span>
                     )}
                     {titleLower.includes("sleep") && (
-                      <span className="shrink-0 rounded-full bg-teal-500/10 px-2 py-0.5 text-[10px] font-extrabold text-teal-300 border border-teal-500/20">
+                      <span className="shrink-0 rounded-full bg-teal-500/10 px-2 py-0.5 text-[10px] font-extrabold text-teal-500 border border-teal-500/20">
                         &lt;5h Deficit Risk
                       </span>
                     )}
                     {titleLower.includes("social") && (
-                      <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-extrabold text-amber-300 border border-amber-500/20">
+                      <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-extrabold text-amber-500 border border-amber-500/20">
                         Screen Drift
                       </span>
                     )}
                   </div>
 
-                  <p className="mt-1 text-xs text-slate-400 leading-snug line-clamp-2 font-medium">
+                  <p className="mt-1 text-xs leading-snug line-clamp-2 font-medium" style={{ color: "var(--text-secondary)" }}>
                     {chart.subtitle}
                   </p>
                 </div>
@@ -512,78 +541,41 @@ export default function DashboardOverviewPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     {isHorizontal ? (
                       <BarChart layout="vertical" data={chart.data} margin={{ left: 15, right: 15, top: 10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-                        <XAxis
-                          type="number"
-                          stroke="#64748b"
-                          fontSize={10}
-                          tickLine={false}
+                        <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} horizontal={false} />
+                        <XAxis type="number" stroke={axisStroke} fontSize={10} tickLine={false}
                           domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]}
-                          tickFormatter={(v) => `${v}%`}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="name"
-                          stroke="#94a3b8"
-                          fontSize={10}
-                          fontWeight={600}
-                          tickLine={false}
-                          width={75}
-                        />
+                          tickFormatter={(v) => `${v}%`} />
+                        <YAxis type="category" dataKey="name" stroke={axisStroke} fontSize={10} fontWeight={600} tickLine={false} width={75} />
                         <Tooltip
                           formatter={(value: any, name: any, item: any) => [
                             `${value}% (${item.payload.count?.toLocaleString()} / ${item.payload.total?.toLocaleString()})`,
                             "Prevalence",
                           ]}
-                          contentStyle={{
-                            backgroundColor: "#090d16",
-                            borderColor: "#334155",
-                            color: "#f8fafc",
-                            borderRadius: "12px",
-                            fontSize: "12px",
-                            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.5)",
-                          }}
+                          contentStyle={{ backgroundColor: tooltipBg, borderColor: tooltipBorder, color: tooltipColor, borderRadius: "12px", fontSize: "12px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.3)" }}
                         />
                         <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
                           {chart.data.map((entry, idx) => (
-                            <Cell
-                              key={`cell-${idx}`}
-                              fill={getStoryBarColor(chart.title, entry.name, chart.primary_color)}
-                            />
+                            <Cell key={`cell-${idx}`} fill={getStoryBarColor(chart.title, entry.name, chart.primary_color, isDark)} />
                           ))}
                         </Bar>
                       </BarChart>
                     ) : (
                       <BarChart data={chart.data} margin={{ left: -15, right: 10, top: 10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                        <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} fontWeight={600} tickLine={false} />
-                        <YAxis
-                          stroke="#64748b"
-                          fontSize={10}
-                          tickLine={false}
+                        <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                        <XAxis dataKey="name" stroke={axisStroke} fontSize={10} fontWeight={600} tickLine={false} />
+                        <YAxis stroke={axisStroke} fontSize={10} tickLine={false}
                           domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.15)]}
-                          tickFormatter={(v) => `${v}%`}
-                        />
+                          tickFormatter={(v) => `${v}%`} />
                         <Tooltip
                           formatter={(value: any, name: any, item: any) => [
                             `${value}% (${item.payload.count?.toLocaleString()} / ${item.payload.total?.toLocaleString()})`,
                             "Prevalence",
                           ]}
-                          contentStyle={{
-                            backgroundColor: "#090d16",
-                            borderColor: "#334155",
-                            color: "#f8fafc",
-                            borderRadius: "12px",
-                            fontSize: "12px",
-                            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.5)",
-                          }}
+                          contentStyle={{ backgroundColor: tooltipBg, borderColor: tooltipBorder, color: tooltipColor, borderRadius: "12px", fontSize: "12px", boxShadow: isDark ? "0 10px 15px -3px rgb(0 0 0 / 0.5)" : "0 10px 15px -3px rgb(0 0 0 / 0.08)" }}
                         />
                         <Bar dataKey="rate" radius={[4, 4, 0, 0]}>
                           {chart.data.map((entry, idx) => (
-                            <Cell
-                              key={`cell-${idx}`}
-                              fill={getStoryBarColor(chart.title, entry.name, chart.primary_color)}
-                            />
+                            <Cell key={`cell-${idx}`} fill={getStoryBarColor(chart.title, entry.name, chart.primary_color, isDark)} />
                           ))}
                         </Bar>
                       </BarChart>
@@ -594,73 +586,48 @@ export default function DashboardOverviewPage() {
             );
           })}
 
-          {/* Visual 6: Depressed vs non-depressed: lifestyle gaps */}
+          {/* Visual 6: Lifestyle gaps */}
           {lifestyleGaps && lifestyleGaps.data && (
-            <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-sm hover:border-slate-700 transition">
+            <div
+              className="flex flex-col justify-between rounded-2xl p-5 shadow-sm transition hover:opacity-90"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
+            >
               <div>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-white">{lifestyleGaps.title}</h3>
+                  <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{lifestyleGaps.title}</h3>
                   <div className="flex items-center gap-2 text-[10px] font-bold">
-                    <span className="flex items-center gap-1 text-emerald-400">
+                    <span className="flex items-center gap-1 text-emerald-500">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" /> Protective
                     </span>
-                    <span className="flex items-center gap-1 text-rose-400">
+                    <span className="flex items-center gap-1 text-rose-500">
                       <span className="h-2 w-2 rounded-full bg-rose-500" /> Risk Factor
                     </span>
                   </div>
                 </div>
 
-                <p className="mt-1 text-xs text-slate-400 leading-snug line-clamp-2 font-medium">
+                <p className="mt-1 text-xs leading-snug line-clamp-2 font-medium" style={{ color: "var(--text-secondary)" }}>
                   {lifestyleGaps.subtitle}
                 </p>
               </div>
 
               <div className="mt-4 h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    layout="vertical"
-                    data={lifestyleGaps.data}
-                    margin={{ left: 20, right: 20, top: 10, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis
-                      type="number"
-                      stroke="#64748b"
-                      fontSize={10}
-                      tickLine={false}
-                      domain={[-2.5, 0.5]}
-                      tickFormatter={(v) => (v > 0 ? `+${v}` : `${v}`)}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="metric"
-                      stroke="#94a3b8"
-                      fontSize={10}
-                      fontWeight={600}
-                      tickLine={false}
-                      width={85}
-                    />
-                    <ReferenceLine x={0} stroke="#475569" strokeWidth={1.5} />
+                  <BarChart layout="vertical" data={lifestyleGaps.data} margin={{ left: 20, right: 20, top: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                    <XAxis type="number" stroke={axisStroke} fontSize={10} tickLine={false}
+                      domain={[-2.5, 0.5]} tickFormatter={(v) => (v > 0 ? `+${v}` : `${v}`)} />
+                    <YAxis type="category" dataKey="metric" stroke={axisStroke} fontSize={10} fontWeight={600} tickLine={false} width={85} />
+                    <ReferenceLine x={0} stroke={isDark ? "#64748b" : "#94a3b8"} strokeWidth={1.5} />
                     <Tooltip
                       formatter={(val: any, name: any, item: any) => [
                         `${val > 0 ? "+" : ""}${val} (Depressed: ${item.payload.dep_mean}, Healthy: ${item.payload.non_dep_mean})`,
                         "Mean Gap",
                       ]}
-                      contentStyle={{
-                        backgroundColor: "#090d16",
-                        borderColor: "#334155",
-                        color: "#f8fafc",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                        boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.5)",
-                      }}
+                      contentStyle={{ backgroundColor: tooltipBg, borderColor: tooltipBorder, color: tooltipColor, borderRadius: "12px", fontSize: "12px", boxShadow: isDark ? "0 10px 15px -3px rgb(0 0 0 / 0.5)" : "0 10px 15px -3px rgb(0 0 0 / 0.08)" }}
                     />
                     <Bar dataKey="gap" radius={[4, 4, 4, 4]}>
                       {lifestyleGaps.data.map((entry, index) => (
-                        <Cell
-                          key={`gap-cell-${index}`}
-                          fill={entry.gap < 0 ? "#10b981" : "#f43f5e"}
-                        />
+                        <Cell key={`gap-cell-${index}`} fill={entry.gap < 0 ? "#10b981" : "#f43f5e"} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -671,11 +638,14 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* Footer Note */}
-        <div className="mt-8 border-t border-slate-800/80 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2">
+        <div
+          className="mt-8 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs gap-2"
+          style={{ borderTop: "1px solid var(--border-subtle)", color: "var(--text-secondary)" }}
+        >
           <span>
-            Mockup rendered from the full <strong className="text-slate-200">{kpis ? kpis.total_students.toLocaleString() : "100,000"}</strong>-row dataset.
+            Mockup rendered from the full <strong style={{ color: "var(--text-primary)" }}>{kpis ? kpis.total_students.toLocaleString() : "100,000"}</strong>-row dataset.
           </span>
-          <span className="font-medium text-slate-400">
+          <span className="font-medium">
             Measures calculated dynamically from active cross-filters.
           </span>
         </div>

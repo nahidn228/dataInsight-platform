@@ -38,8 +38,8 @@ export default function InsightsPage() {
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
           <Database className="h-8 w-8" />
         </div>
-        <h2 className="text-xl font-bold text-white">No Dataset Active</h2>
-        <p className="max-w-md text-sm text-slate-400">
+        <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>No Dataset Active</h2>
+        <p className="max-w-md text-sm" style={{ color: "var(--text-secondary)" }}>
           Upload a dataset to extract evidence-based findings, anomalies, and multivariate relationships.
         </p>
         <Link
@@ -55,12 +55,12 @@ export default function InsightsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-800 pb-5">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b pb-5" style={{ borderColor: "var(--border-subtle)" }}>
         <div>
           <div className="flex items-center gap-2 text-xs text-amber-400">
             <Lightbulb className="h-4 w-4" /> Rule-Based Statistical Inference Engine
           </div>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white md:text-3xl">
+          <h1 className="mt-1 text-2xl font-bold tracking-tight md:text-3xl" style={{ color: "var(--text-primary)" }}>
             Evidence-Based Analytical Findings
           </h1>
         </div>
@@ -70,7 +70,7 @@ export default function InsightsPage() {
       <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-4 text-xs text-sky-300 flex items-start gap-3">
         <Info className="h-5 w-5 shrink-0 text-sky-400 mt-0.5" />
         <div>
-          <span className="font-semibold block text-slate-200 mb-0.5">Academic Rigour & Methodological Standard</span>
+          <span className="font-semibold block mb-0.5" style={{ color: "var(--text-primary)" }}>Academic Rigour & Methodological Standard</span>
           All insights presented below are derived algorithmically from exact statistical properties of the active
           dataset (IQR anomaly bounds, Pearson coefficients, skewness metrics, and segment ratios). No external LLMs
           or unverified generative inferences are used.
@@ -84,9 +84,13 @@ export default function InsightsPage() {
             key={insight.id}
             className={`rounded-xl border p-5 space-y-4 shadow-sm flex flex-col justify-between ${
               insight.importance === "high"
-                ? "border-sky-500/40 bg-slate-900/80"
-                : "border-slate-800 bg-slate-900/50"
+                ? "border-sky-500/40"
+                : ""
             }`}
+            style={{
+              borderColor: insight.importance === "high" ? undefined : "var(--border-subtle)",
+              backgroundColor: "var(--bg-surface)",
+            }}
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -104,21 +108,21 @@ export default function InsightsPage() {
                   {insight.type}
                 </span>
 
-                <span className="text-[11px] font-mono text-slate-400">
-                  {insight.metric_name}: <strong className="text-white">{insight.metric_value}</strong>
+                <span className="text-[11px] font-mono" style={{ color: "var(--text-secondary)" }}>
+                  {insight.metric_name}: <strong style={{ color: "var(--text-primary)" }}>{insight.metric_value}</strong>
                 </span>
               </div>
 
-              <h3 className="text-base font-bold text-white">{insight.title}</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">{insight.description}</p>
+              <h3 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>{insight.title}</h3>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-primary)" }}>{insight.description}</p>
             </div>
 
             {/* Evidence & Supporting Columns */}
-            <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-              <div className="flex items-center gap-1.5 text-slate-400">
+            <div className="pt-3 border-t flex items-center justify-between text-[11px]" style={{ borderColor: "var(--border-subtle)" }}>
+              <div className="flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
                 <span>Fields:</span>
                 {insight.supporting_columns.map((c) => (
-                  <span key={c} className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-slate-300">
+                  <span key={c} className="rounded px-1.5 py-0.5 font-mono" style={{ backgroundColor: "var(--bg-elevated)", color: "var(--text-primary)" }}>
                     {c}
                   </span>
                 ))}
@@ -139,4 +143,3 @@ export default function InsightsPage() {
     </div>
   );
 }
-

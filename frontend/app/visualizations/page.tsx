@@ -101,8 +101,8 @@ export default function VisualizationsPage() {
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
           <Database className="h-8 w-8" />
         </div>
-        <h2 className="text-xl font-bold text-white">No Dataset Active</h2>
-        <p className="max-w-md text-sm text-slate-400">
+        <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>No Dataset Active</h2>
+        <p className="max-w-md text-sm" style={{ color: "var(--text-secondary)" }}>
           Upload a dataset to build custom interactive visualisations and explore automatic recommendations.
         </p>
         <Link
@@ -118,12 +118,12 @@ export default function VisualizationsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-800 pb-5">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pb-5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div>
           <div className="flex items-center gap-2 text-xs text-sky-400">
             <PieIcon className="h-4 w-4" /> Universal Visualisation Studio
           </div>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white md:text-3xl">
+          <h1 className="mt-1 text-2xl font-bold tracking-tight md:text-3xl" style={{ color: "var(--text-primary)" }}>
             Interactive Chart Recommendation & Custom Builder
           </h1>
         </div>
@@ -131,7 +131,7 @@ export default function VisualizationsPage() {
 
       {/* Preset Recommendation Pills */}
       <div className="space-y-2">
-        <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+        <span className="text-xs font-semibold flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
           <Sparkles className="h-3.5 w-3.5 text-amber-400" /> Algorithmic Recommendations:
         </span>
         <div className="flex flex-wrap gap-2">
@@ -139,7 +139,8 @@ export default function VisualizationsPage() {
             <button
               key={rec.chart_id}
               onClick={() => applyRecommendation(rec)}
-              className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-300 hover:border-sky-500/50 hover:bg-slate-800 transition flex items-center gap-2"
+              className="rounded-lg px-3 py-1.5 text-xs transition flex items-center gap-2"
+              style={{ border: "1px solid var(--border-subtle)", backgroundColor: "var(--bg-surface)", color: "var(--text-primary)" }}
             >
               <span className="rounded bg-sky-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-sky-300 uppercase">
                 {rec.chart_type}
@@ -152,18 +153,19 @@ export default function VisualizationsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Custom Configuration Control Panel */}
-        <div className="lg:col-span-1 rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-white border-b border-slate-800 pb-3">
+        <div className="lg:col-span-1 rounded-xl p-5 space-y-4" style={{ border: "1px solid var(--border-subtle)", backgroundColor: "var(--bg-surface)" }}>
+          <div className="flex items-center gap-2 text-sm font-semibold pb-3" style={{ color: "var(--text-primary)", borderBottom: "1px solid var(--border-subtle)" }}>
             <Sliders className="h-4 w-4 text-sky-400" /> Chart Controls
           </div>
 
           <div className="space-y-3 text-xs">
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Chart Type</label>
+              <label className="block font-medium mb-1" style={{ color: "var(--text-secondary)" }}>Chart Type</label>
               <select
                 value={chartType}
                 onChange={(e) => setChartType(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                style={{ border: "1px solid var(--border-default)", backgroundColor: "var(--bg-base)", color: "var(--text-primary)" }}
               >
                 <option value="bar">Bar Chart</option>
                 <option value="horizontal_bar">Horizontal Bar</option>
@@ -178,11 +180,12 @@ export default function VisualizationsPage() {
             </div>
 
             <div>
-              <label className="block text-slate-400 font-medium mb-1">X-Axis / Category</label>
+              <label className="block font-medium mb-1" style={{ color: "var(--text-secondary)" }}>X-Axis / Category</label>
               <select
                 value={xColumn}
                 onChange={(e) => setXColumn(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                style={{ border: "1px solid var(--border-default)", backgroundColor: "var(--bg-base)", color: "var(--text-primary)" }}
               >
                 {metadata.columns.map((c) => (
                   <option key={c.name} value={c.name}>
@@ -193,11 +196,12 @@ export default function VisualizationsPage() {
             </div>
 
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Y-Axis Metric (Optional)</label>
+              <label className="block font-medium mb-1" style={{ color: "var(--text-secondary)" }}>Y-Axis Metric (Optional)</label>
               <select
                 value={yColumn}
                 onChange={(e) => setYColumn(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                style={{ border: "1px solid var(--border-default)", backgroundColor: "var(--bg-base)", color: "var(--text-primary)" }}
               >
                 <option value="">None (Frequency Count)</option>
                 {metadata.numerical_columns.map((c) => (
@@ -210,11 +214,12 @@ export default function VisualizationsPage() {
 
             {yColumn && (
               <div>
-                <label className="block text-slate-400 font-medium mb-1">Aggregation</label>
+                <label className="block font-medium mb-1" style={{ color: "var(--text-secondary)" }}>Aggregation</label>
                 <select
                   value={aggregation}
                   onChange={(e) => setAggregation(e.target.value)}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none"
+                  className="w-full rounded-lg px-3 py-2 focus:outline-none"
+                  style={{ border: "1px solid var(--border-default)", backgroundColor: "var(--bg-base)", color: "var(--text-primary)" }}
                 >
                   <option value="mean">Mean (Average)</option>
                   <option value="sum">Sum</option>
@@ -227,28 +232,29 @@ export default function VisualizationsPage() {
             )}
 
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Top Limit</label>
+              <label className="block font-medium mb-1" style={{ color: "var(--text-secondary)" }}>Top Limit</label>
               <input
                 type="number"
                 min={5}
                 max={50}
                 value={limit}
                 onChange={(e) => setLimit(Number(e.target.value))}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none font-mono"
+                className="w-full rounded-lg px-3 py-2 font-mono focus:outline-none"
+                style={{ border: "1px solid var(--border-default)", backgroundColor: "var(--bg-base)", color: "var(--text-primary)" }}
               />
             </div>
           </div>
         </div>
 
         {/* Chart Canvas */}
-        <div className="lg:col-span-3 rounded-xl border border-slate-800 bg-slate-900/60 p-6 flex flex-col justify-between shadow-sm">
+        <div className="lg:col-span-3 rounded-xl p-6 flex flex-col justify-between shadow-sm" style={{ border: "1px solid var(--border-subtle)", backgroundColor: "var(--bg-surface)" }}>
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+            <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
               <div>
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
                   {activeChartData?.title || "Dynamic Visualisation"}
                 </h3>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
                   {activeChartData?.x_axis_label} vs {activeChartData?.y_axis_label}
                 </span>
               </div>
@@ -262,7 +268,7 @@ export default function VisualizationsPage() {
 
           <div className="h-[440px] w-full">
             {loading ? (
-              <div className="flex h-full items-center justify-center gap-2 text-sm text-slate-400">
+              <div className="flex h-full items-center justify-center gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
                 <RefreshCw className="h-4 w-4 animate-spin text-sky-400" /> Recomputing chart...
               </div>
             ) : activeChartData && activeChartData.data.length > 0 ? (
@@ -285,21 +291,21 @@ export default function VisualizationsPage() {
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#0f172a",
-                        borderColor: "#334155",
+                        backgroundColor: "var(--bg-surface)",
+                        borderColor: "var(--border-default)",
                         borderRadius: "8px",
                       }}
                     />
                   </RechartsPie>
                 ) : chartType === "line" ? (
                   <LineChart data={activeChartData.data}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} />
-                    <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
+                    <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                    <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#0f172a",
-                        borderColor: "#334155",
+                        backgroundColor: "var(--bg-surface)",
+                        borderColor: "var(--border-default)",
                         borderRadius: "8px",
                       }}
                     />
@@ -307,13 +313,13 @@ export default function VisualizationsPage() {
                   </LineChart>
                 ) : chartType === "area" ? (
                   <AreaChart data={activeChartData.data}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} />
-                    <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
+                    <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                    <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#0f172a",
-                        borderColor: "#334155",
+                        backgroundColor: "var(--bg-surface)",
+                        borderColor: "var(--border-default)",
                         borderRadius: "8px",
                       }}
                     />
@@ -321,14 +327,14 @@ export default function VisualizationsPage() {
                   </AreaChart>
                 ) : chartType === "scatter" ? (
                   <ScatterChart>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="x" stroke="#64748b" fontSize={11} tickLine={false} name={xColumn} />
-                    <YAxis dataKey="y" stroke="#64748b" fontSize={11} tickLine={false} name={yColumn} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
+                    <XAxis dataKey="x" stroke="var(--text-muted)" fontSize={11} tickLine={false} name={xColumn} />
+                    <YAxis dataKey="y" stroke="var(--text-muted)" fontSize={11} tickLine={false} name={yColumn} />
                     <Tooltip
                       cursor={{ strokeDasharray: "3 3" }}
                       contentStyle={{
-                        backgroundColor: "#0f172a",
-                        borderColor: "#334155",
+                        backgroundColor: "var(--bg-surface)",
+                        borderColor: "var(--border-default)",
                         borderRadius: "8px",
                       }}
                     />
@@ -336,13 +342,13 @@ export default function VisualizationsPage() {
                   </ScatterChart>
                 ) : (
                   <BarChart data={activeChartData.data}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} />
-                    <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
+                    <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                    <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#0f172a",
-                        borderColor: "#334155",
+                        backgroundColor: "var(--bg-surface)",
+                        borderColor: "var(--border-default)",
                         borderRadius: "8px",
                       }}
                     />
@@ -351,7 +357,7 @@ export default function VisualizationsPage() {
                 )}
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-slate-500">
+              <div className="flex h-full items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
                 Select suitable attributes to render chart.
               </div>
             )}
@@ -361,4 +367,3 @@ export default function VisualizationsPage() {
     </div>
   );
 }
-

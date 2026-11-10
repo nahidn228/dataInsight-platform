@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 import chardet
 import pandas as pd
@@ -180,8 +181,38 @@ def load_dataset_file(file_path: str, sheet_name: Optional[str] = None) -> Tuple
     else:
         raise ValueError(f"Unsupported file extension: {ext}")
 
-    # Standardize column headers to strings and clean leading/trailing whitespace
-    df.columns = [str(c).strip() for c in df.columns]
+    # Standardize column headers to clean, easy-to-understand names for any table with no names
+    cleaned_columns = []
+    for i, c in enumerate(df.columns):
+        c_str = str(c).strip()
+        c_lower = c_str.lower()
+        is_unnamed = (
+            not c_str
+            or c_lower in ["", "none", "nan", "null", "undefined"]
+            or c_lower.startswith("unnamed:")
+            or re.match(r'^\s*(\.\d+|\d+)\s*$', c_str) is not None
+        )
+        if is_unnamed:
+            # If first column is unique integer sequence, label it intuitively
+            if i == 0 and pd.api.types.is_integer_dtype(df.iloc[:, i]) and df.iloc[:, i].nunique() == len(df):
+                cleaned_columns.append("Record ID")
+            else:
+                cleaned_columns.append(f"Column {i+1}")
+        else:
+            cleaned_columns.append(c_str)
+    
+    # Ensure uniqueness of columns
+    seen: Dict[str, int] = {}
+    deduped_columns = []
+    for col in cleaned_columns:
+        if col in seen:
+            seen[col] += 1
+            deduped_columns.append(f"{col}_{seen[col]}")
+        else:
+            seen[col] = 0
+            deduped_columns.append(col)
+
+    df.columns = deduped_columns
     
     # Auto-convert datetime candidates if high accuracy
     for col in df.columns:

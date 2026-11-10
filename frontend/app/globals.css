@@ -1,26 +1,69 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ─── Dark theme (default) ─── */
+:root,
+.dark {
+  --bg-base:        #020617;   /* slate-950 */
+  --bg-surface:     #0f172a;   /* slate-900 */
+  --bg-elevated:    #1e293b;   /* slate-800 */
+  --bg-card:        #0f172a;
+  --border-subtle:  #1e293b;
+  --border-default: #334155;   /* slate-700 */
+  --text-primary:   #f8fafc;   /* slate-50  */
+  --text-secondary: #94a3b8;   /* slate-400 */
+  --text-muted:     #64748b;   /* slate-500 */
+  --accent-sky:     #38bdf8;
+  --accent-indigo:  #818cf8;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ─── Light theme ─── */
+.light {
+  --bg-base:        #f1f5f9;   /* slate-100 */
+  --bg-surface:     #ffffff;
+  --bg-elevated:    #f8fafc;   /* slate-50  */
+  --bg-card:        #ffffff;
+  --border-subtle:  #e2e8f0;   /* slate-200 */
+  --border-default: #cbd5e1;   /* slate-300 */
+  --text-primary:   #0f172a;   /* slate-900 */
+  --text-secondary: #475569;   /* slate-600 */
+  --text-muted:     #94a3b8;   /* slate-400 */
+  --accent-sky:     #0284c7;   /* sky-600   */
+  --accent-indigo:  #4f46e5;   /* indigo-600*/
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base resets ─── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+html.light {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ─── Utility classes that use CSS vars ─── */
+.theme-bg-base      { background-color: var(--bg-base); }
+.theme-bg-surface   { background-color: var(--bg-surface); }
+.theme-bg-elevated  { background-color: var(--bg-elevated); }
+.theme-bg-card      { background-color: var(--bg-card); }
+.theme-border       { border-color: var(--border-default); }
+.theme-border-subtle{ border-color: var(--border-subtle); }
+.theme-text         { color: var(--text-primary); }
+.theme-text-muted   { color: var(--text-secondary); }
+.theme-text-faint   { color: var(--text-muted); }
+
+/* ─── Smooth transitions for theme swap ─── */
+aside, header, main, nav, div, section, article {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
 }
