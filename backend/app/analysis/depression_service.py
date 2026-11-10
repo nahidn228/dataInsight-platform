@@ -212,7 +212,7 @@ def analyze_student_depression(
         if cname and cname in valid_df.columns:
             num = pd.to_numeric(valid_df[cname], errors="coerce").dropna()
             if len(num) > 0:
-                return round(float(num.mean()), 1)
+                return round(float(num.mean()), 2)
         return None
 
     # Check top numeric columns if domain columns aren't present
