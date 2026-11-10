@@ -55,10 +55,19 @@ def analyze_student_depression(
     analysis_columns: Optional[List[str]] = None
 ) -> DepressionAnalysisResponse:
     # 1. Determine target column
-    target_col = target_column or find_matching_column(
-        list(df.columns),
-        "depression", "depressed", "depression_status", "has_depression", "depressed_status", "churn", "target", "condition"
-    )
+    if target_column and target_column in df.columns:
+        target_col = target_column
+    elif target_column:
+        # fuzzy match if user sent "stress level" instead of "Stress_Level"
+        target_col = find_matching_column(list(df.columns), target_column) or find_matching_column(
+            list(df.columns),
+            "depression", "depressed", "depression_status", "has_depression", "depressed_status", "churn", "target", "condition"
+        )
+    else:
+        target_col = find_matching_column(
+            list(df.columns),
+            "depression", "depressed", "depression_status", "has_depression", "depressed_status", "churn", "target", "condition"
+        )
 
     if not target_col or target_col not in df.columns:
         return DepressionAnalysisResponse(
@@ -120,7 +129,15 @@ def analyze_student_depression(
     chosen_filter_cols = filter_columns if filter_columns and len(filter_columns) > 0 else None
 
     if chosen_filter_cols:
-        target_slicer_cols = [c for c in chosen_filter_cols if c in df.columns]
+        # Fuzzy-resolve filter column names (handle spaces vs underscores, case)
+        target_slicer_cols = []
+        for user_col in chosen_filter_cols:
+            if user_col in df.columns:
+                target_slicer_cols.append(user_col)
+            else:
+                matched = find_matching_column(list(df.columns), user_col)
+                if matched:
+                    target_slicer_cols.append(matched)
     else:
         # Default priority: Gender, Department, Age
         target_slicer_cols = []
@@ -236,8 +253,18 @@ def analyze_student_depression(
 
     # If specific analysis columns requested, generate for each
     if chosen_analysis_cols:
-        for idx, col in enumerate(chosen_analysis_cols):
-            if col not in valid_df.columns or col == target_col:
+        # Resolve fuzzy column name matches (handle spaces vs underscores, case)
+        resolved_analysis_cols = []
+        for user_col in chosen_analysis_cols:
+            if user_col in valid_df.columns:
+                resolved_analysis_cols.append(user_col)
+            else:
+                matched = find_matching_column(list(valid_df.columns), user_col)
+                if matched:
+                    resolved_analysis_cols.append(matched)
+
+        for idx, col in enumerate(resolved_analysis_cols):
+            if col == target_col:
                 continue
             color = PALETTE[idx % len(PALETTE)]
             s_col = valid_df[col].dropna()
