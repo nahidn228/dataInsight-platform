@@ -8,6 +8,8 @@ import {
   ChartDataResponse,
   AnalyticalInsight,
   FilterCondition,
+  DepressionAnalysisResponse,
+  DynamicAnalysisConfig,
 } from "@/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
@@ -91,6 +93,29 @@ export const DatasetApi = {
 
   resetDataset: async (datasetId: string): Promise<any> => {
     const res = await api.post(`/datasets/${datasetId}/reset`);
+    return res.data;
+  },
+
+  getColumnValues: async (datasetId: string, column: string): Promise<string[]> => {
+    const res = await api.get<string[]>(`/datasets/${datasetId}/column-values/${encodeURIComponent(column)}`);
+    return res.data;
+  },
+
+  startDynamicAnalysis: async (
+    datasetId: string,
+    cfg?: DynamicAnalysisConfig
+  ): Promise<DepressionAnalysisResponse> => {
+    const res = await api.post<DepressionAnalysisResponse>(`/datasets/${datasetId}/dynamic-analysis`, cfg || {});
+    return res.data;
+  },
+
+  getDepressionAnalysis: async (
+    datasetId: string,
+    filters?: FilterCondition[]
+  ): Promise<DepressionAnalysisResponse> => {
+    const res = await api.post<DepressionAnalysisResponse>(`/datasets/${datasetId}/depression-analysis`, {
+      filters: filters || [],
+    });
     return res.data;
   },
 

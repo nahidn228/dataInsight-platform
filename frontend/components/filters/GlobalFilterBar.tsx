@@ -177,3 +177,4 @@ export function GlobalFilterBar() {
     </div>
   );
 }
+

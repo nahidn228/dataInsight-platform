@@ -17,9 +17,19 @@ from app.schemas.dataset import (
     ChartConfigRequest,
     ChartDataResponse,
     FilterRequest,
+    FilterCondition,
     AnalyticalInsight,
     CleaningRequest,
     CleanResponse
+)
+from app.schemas.depression import (
+    DepressionAnalysisResponse,
+    FactorPrevalenceChart
+)
+from app.schemas.dynamic import DynamicAnalysisConfig
+from app.analysis.depression_service import (
+    analyze_student_depression,
+    compute_factor_prevalence
 )
 from app.services.dataset_service import (
     session_manager,
@@ -166,6 +176,41 @@ def get_data_quality(dataset_id: str):
         dataset_id=dataset_id
     )
 
+# Endpoint: get distinct values for a column
+@router.get("/{dataset_id}/column-values/{column}")
+def get_column_values(dataset_id: str, column: str):
+    session = session_manager.get_session(dataset_id)
+    if not session or session.active_df is None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    if column not in session.active_df.columns:
+        raise HTTPException(status_code=400, detail=f"Column '{column}' does not exist")
+    values = session.active_df[column].dropna().unique().tolist()
+    # Convert to string for JSON safety
+    return [str(v) for v in values]
+
+# Endpoint: dynamic analysis
+@router.post("/{dataset_id}/dynamic-analysis", response_model=DepressionAnalysisResponse)
+def dynamic_analysis(dataset_id: str, cfg: Optional[DynamicAnalysisConfig] = None):
+    session = session_manager.get_session(dataset_id)
+    if not session or session.active_df is None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    df = session.active_df
+    filters = cfg.filters if cfg and cfg.filters else []
+    target_column = cfg.target_column if cfg else None
+    positive_values = cfg.positive_values if cfg else None
+    filter_columns = cfg.filter_columns if cfg else None
+    analysis_columns = cfg.analysis_columns if cfg else None
+
+    result = analyze_student_depression(
+        df,
+        filters=filters,
+        target_column=target_column,
+        positive_values=positive_values,
+        filter_columns=filter_columns,
+        analysis_columns=analysis_columns
+    )
+    return result
+
 @router.get("/{dataset_id}/charts/recommendations", response_model=List[ChartRecommendation])
 def get_chart_recommendations(dataset_id: str):
     session = session_manager.get_session(dataset_id)
@@ -238,6 +283,49 @@ def reset_to_original(dataset_id: str):
     session.active_df = session.original_df.copy()
     session.applied_transformations = []
     return {"message": "Dataset successfully reset to original state", "total_rows": len(session.active_df)}
+
+@router.post("/{dataset_id}/depression-analysis", response_model=DepressionAnalysisResponse)
+def get_depression_analysis(dataset_id: str, request: Optional[FilterRequest] = None):
+    session = session_manager.get_session(dataset_id)
+    if not session or session.active_df is None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    filters = request.filters if request else None
+    return analyze_student_depression(session.active_df, filters=filters)
+
+@router.post("/{dataset_id}/depression-factor", response_model=FactorPrevalenceChart)
+def get_depression_custom_factor(
+    dataset_id: str,
+    factor_column: str = Query(...),
+    chart_type: str = Query("bar"),
+    request: Optional[FilterRequest] = None
+):
+    session = session_manager.get_session(dataset_id)
+    if not session or session.active_df is None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    if factor_column not in session.active_df.columns:
+        raise HTTPException(status_code=400, detail=f"Column '{factor_column}' not found")
+
+    filters = request.filters if request else None
+    active_df = session.active_df
+    if filters:
+        active_df = apply_dataframe_filters(active_df, filters)
+
+    res = analyze_student_depression(active_df, None)
+    if not res.has_depression_data or not res.target_column:
+        raise HTTPException(status_code=400, detail="No depression target column in this dataset")
+
+    chart = compute_factor_prevalence(
+        active_df,
+        factor_column,
+        res.target_column,
+        f"Depression Prevalence by {factor_column}",
+        chart_type=chart_type
+    )
+    if not chart:
+        raise HTTPException(status_code=400, detail="Unable to compute prevalence for this factor")
+    return chart
 
 @router.get("/{dataset_id}/export")
 @router.post("/{dataset_id}/export")

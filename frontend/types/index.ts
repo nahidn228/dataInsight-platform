@@ -167,3 +167,74 @@ export interface FilterCondition {
   value2?: any;
 }
 
+
+export interface FactorPrevalenceItem {
+  name: string;
+  rate: number;
+  count: number;
+  total: number;
+}
+
+export interface FactorPrevalenceChart {
+  factor_column: string;
+  title: string;
+  subtitle: string;
+  chart_type: string; // 'bar' | 'horizontal_bar' | 'line' | 'pie' | 'table'
+  primary_color: string;
+  data: FactorPrevalenceItem[];
+}
+
+export interface LifestyleGapItem {
+  metric: string;
+  gap: number;
+  dep_mean: number;
+  non_dep_mean: number;
+}
+
+export interface LifestyleGapsChart {
+  title: string;
+  subtitle: string;
+  data: LifestyleGapItem[];
+}
+
+export interface DepressionKpis {
+  total_students: number;
+  depressed_count: number;
+  non_depressed_count: number;
+  depression_rate: number;
+  avg_social_media?: number | null;
+  avg_sleep?: number | null;
+  avg_stress?: number | null;
+  avg_activity?: number | null;
+  avg_cgpa?: number | null;
+  avg_age?: number | null;
+}
+
+export interface SlicerOption {
+  column: string;
+  label: string;
+  type: string; // 'select' | 'range'
+  options: string[];
+  min?: number | null;
+  max?: number | null;
+}
+
+export interface DepressionAnalysisResponse {
+  has_depression_data: boolean;
+  target_column?: string | null;
+  kpis: DepressionKpis;
+  available_factors: string[];
+  detected_columns_map: Record<string, string>;
+  slicers: SlicerOption[];
+  charts: FactorPrevalenceChart[];
+  lifestyle_gaps?: LifestyleGapsChart | null;
+  key_findings: string[];
+}
+
+export interface DynamicAnalysisConfig {
+  target_column?: string;
+  positive_values?: any[];
+  filter_columns?: string[];
+  analysis_columns?: string[];
+  filters?: FilterCondition[];
+}
