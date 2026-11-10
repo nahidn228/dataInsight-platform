@@ -232,6 +232,7 @@ def analyze_student_depression(
     # 7. Generate Analytical Charts
     charts: List[FactorPrevalenceChart] = []
     chosen_analysis_cols = analysis_columns if analysis_columns and len(analysis_columns) > 0 else None
+    target_title = target_col.replace("_", " ").title()
 
     # If specific analysis columns requested, generate for each
     if chosen_analysis_cols:
@@ -245,7 +246,6 @@ def analyze_student_depression(
 
             # Check if this column is one of our calibrated student lifestyle columns
             if col == col_map.get("stress"):
-                # Stress level exact bins: 2, 3, 4, 5, 6, 7, 8, 9+
                 stress_levels = [2, 3, 4, 5, 6, 7, 8]
                 for sl in stress_levels:
                     sub = valid_df[valid_df[col] == sl]
@@ -257,7 +257,6 @@ def analyze_student_depression(
                         count=dep,
                         total=tot
                     ))
-                # 9+ bin
                 sub9 = valid_df[valid_df[col] >= 9]
                 tot9 = len(sub9)
                 dep9 = int(sub9[target_col].apply(check_positive).sum()) if tot9 > 0 else 0
@@ -269,14 +268,13 @@ def analyze_student_depression(
                 ))
                 charts.append(FactorPrevalenceChart(
                     factor_column=col,
-                    title="Depression rate by stress level",
+                    title=f"{target_title} rate by stress level",
                     subtitle="Rates double once stress hits 8/10 — the strongest signal in the dataset.",
                     chart_type="bar",
                     primary_color="#d9534f",
                     data=items
                 ))
             elif col == col_map.get("cgpa"):
-                # CGPA exact bands: 1.5–2.0, 2.0–2.5, 2.5–3.0, 3.0–3.5, 3.5–4.0
                 bands = [
                     ("1.5–2.0", 1.5, 2.0),
                     ("2.0–2.5", 2.0, 2.5),
@@ -298,14 +296,13 @@ def analyze_student_depression(
                     ))
                 charts.append(FactorPrevalenceChart(
                     factor_column=col,
-                    title="Depression rate by CGPA band",
+                    title=f"{target_title} rate by CGPA band",
                     subtitle="Academic performance splits the population: ~22% below CGPA 2.5 vs ~6% above.",
                     chart_type="bar",
                     primary_color="#4a47a3",
                     data=items
                 ))
             elif col == col_map.get("sleep"):
-                # Sleep exact bins: <5, 5–6, 6–7, 7–8, 8–9, 9+
                 sleep_bins = [
                     ("<5", 0.0, 5.0),
                     ("5–6", 5.0, 6.0),
@@ -328,14 +325,13 @@ def analyze_student_depression(
                     ))
                 charts.append(FactorPrevalenceChart(
                     factor_column=col,
-                    title="Depression rate by sleep duration",
+                    title=f"{target_title} rate by sleep duration",
                     subtitle="Under 5 hours a night doubles the rate; 5+ hours are broadly similar.",
                     chart_type="bar",
                     primary_color="#009688",
                     data=items
                 ))
             elif col == col_map.get("social"):
-                # Social media exact bins: 0–1, 1–2, 2–3, 3–4, 4–5, 5–6, 6–8, 8+
                 sm_bins = [
                     ("0–1", 0.0, 1.0),
                     ("1–2", 1.0, 2.0),
@@ -360,7 +356,7 @@ def analyze_student_depression(
                     ))
                 charts.append(FactorPrevalenceChart(
                     factor_column=col,
-                    title="Depression rate by social media hours",
+                    title=f"{target_title} rate by social media hours",
                     subtitle="A gentler slope: rates drift up from ~9.7% to ~12% beyond 5 hours a day.",
                     chart_type="bar",
                     primary_color="#c88a2c",
@@ -378,6 +374,13 @@ def analyze_student_depression(
                         total=tot
                     ))
                 charts.append(FactorPrevalenceChart(
+                    factor_column=col,
+                    title=f"{target_title} rate by department",
+                    subtitle="Rates are close across departments — no single faculty stands out.",
+                    chart_type="horizontal_bar",
+                    primary_color="#6f7d95",
+                    data=items
+                ))
                     factor_column=col,
                     title="Depression rate by department",
                     subtitle="Rates are close across departments — no single faculty stands out.",
