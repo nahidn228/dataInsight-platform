@@ -363,7 +363,7 @@ def export_dataset(dataset_id: str, format: str = Query("csv", pattern="^(csv|xl
         quality = evaluate_data_quality(session.active_df, meta.numerical_columns, meta.categorical_columns, dataset_id)
         insights = generate_rule_based_insights(session.active_df, meta.numerical_columns, meta.categorical_columns, meta.datetime_columns)
 
-        pdf_bytes = generate_pdf_report(meta, stats, quality, insights)
+        pdf_bytes = generate_pdf_report(meta, stats, quality, insights, df=session.active_df)
         return StreamingResponse(
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",

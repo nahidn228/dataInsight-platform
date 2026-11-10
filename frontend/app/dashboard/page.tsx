@@ -13,6 +13,7 @@ import {
   Moon,
   Smartphone,
   Flame,
+  Download,
 } from "lucide-react";
 import { useDataset } from "@/context/DatasetContext";
 import { DatasetApi } from "@/lib/api";
@@ -299,6 +300,16 @@ export default function DashboardOverviewPage() {
               <span className="font-bold text-rose-400">Red</span> = high vulnerability,{" "}
               <span className="font-bold text-emerald-400">Green</span> = protective resilience.
             </div>
+
+            <a
+              href={DatasetApi.getExportUrl(datasetId, "pdf")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-600/20 px-3.5 py-2.5 text-xs font-bold text-indigo-300 shadow-sm hover:bg-indigo-600/30 hover:text-white transition"
+              title="Download Executive Dashboard & Assessment PDF Report"
+            >
+              <Download className="h-3.5 w-3.5 text-indigo-400" /> Export PDF Report
+            </a>
 
             <button
               onClick={() => setShowConfig(!showConfig)}
