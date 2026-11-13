@@ -208,6 +208,7 @@ export interface DepressionKpis {
   avg_activity?: number | null;
   avg_cgpa?: number | null;
   avg_age?: number | null;
+  custom_metrics?: Record<string, number> | null;
 }
 
 export interface SlicerOption {

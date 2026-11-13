@@ -37,6 +37,7 @@ class DepressionKpis(BaseModel):
     avg_activity: Optional[float] = None
     avg_cgpa: Optional[float] = None
     avg_age: Optional[float] = None
+    custom_metrics: Optional[Dict[str, float]] = None
 
 class SlicerOption(BaseModel):
     column: str

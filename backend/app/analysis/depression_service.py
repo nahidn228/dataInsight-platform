@@ -232,6 +232,16 @@ def analyze_student_depression(
                 return round(float(num.mean()), 2)
         return None
 
+    # Calculate custom metrics for any generic numerical columns (e.g. churn, sales, HR)
+    custom_metrics = {}
+    for c in valid_df.columns:
+        if c != target_col and pd.api.types.is_numeric_dtype(valid_df[c]):
+            m = calc_mean(c)
+            if m is not None:
+                custom_metrics[c] = m
+            if len(custom_metrics) >= 6:
+                break
+
     # Check top numeric columns if domain columns aren't present
     kpis = DepressionKpis(
         total_students=total_valid,
@@ -243,7 +253,8 @@ def analyze_student_depression(
         avg_stress=calc_mean(col_map.get("stress")),
         avg_activity=calc_mean(col_map.get("activity")),
         avg_cgpa=calc_mean(col_map.get("cgpa")),
-        avg_age=calc_mean(col_map.get("age"))
+        avg_age=calc_mean(col_map.get("age")),
+        custom_metrics=custom_metrics if custom_metrics else None
     )
 
     # 7. Generate Analytical Charts

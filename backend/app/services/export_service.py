@@ -51,16 +51,16 @@ def render_factor_prevalence_charts(analysis) -> Optional[io.BytesIO]:
         names = [item.name for item in ch.data]
         rates = [item.rate for item in ch.data]
         
-        # Color palette
+        # Strict 5-color palette: Indigo, Rose, Teal, Amber, Slate
         ch_title_lower = ch.title.lower()
         if "stress" in ch_title_lower:
-            bar_colors = ["#f87171" if r < 15 else "#fb923c" if r < 25 else "#ef4444" for r in rates]
+            bar_colors = ["#64748b" if r < 12 else "#f59e0b" if r < 25 else "#f43f5e" for r in rates]
         elif "sleep" in ch_title_lower:
             bar_colors = ["#f43f5e" if "5" in str(n) and "<" in str(n) else "#0d9488" for n in names]
         elif "cgpa" in ch_title_lower or "gpa" in ch_title_lower:
-            bar_colors = ["#4f46e5" if r > 15 else "#818cf8" for r in rates]
+            bar_colors = ["#f43f5e" if r > 15 else "#6366f1" for r in rates]
         else:
-            bar_colors = ["#0284c7" for _ in rates]
+            bar_colors = ["#6366f1" for _ in rates]
             
         bars = ax.bar(names, rates, color=bar_colors, width=0.62, edgecolor="none")
         ax.set_title(ch.title, fontsize=8.5, fontweight="bold", color="#1e293b", pad=6)
@@ -96,7 +96,7 @@ def render_lifestyle_gaps_chart(lifestyle_gaps) -> Optional[io.BytesIO]:
 
     metrics = [item.metric for item in lifestyle_gaps.data]
     gaps = [item.gap for item in lifestyle_gaps.data]
-    bar_colors = ["#10b981" if g < 0 else "#f43f5e" for g in gaps]
+    bar_colors = ["#0d9488" if g < 0 else "#f43f5e" for g in gaps]
 
     fig, ax = plt.subplots(figsize=(7.0, 2.1), dpi=180)
     fig.patch.set_facecolor("#ffffff")
