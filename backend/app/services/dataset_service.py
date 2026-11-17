@@ -38,7 +38,30 @@ class SessionManager:
         return session
 
     def get_session(self, dataset_id: str) -> Optional[DatasetSession]:
-        return self._sessions.get(dataset_id)
+        session = self._sessions.get(dataset_id)
+        if session and session.active_df is not None:
+            return session
+
+        # Auto-recover from uploads directory if backend was restarted
+        upload_dir = settings.UPLOAD_DIR
+        if os.path.exists(upload_dir):
+            for fname in os.listdir(upload_dir):
+                if fname.startswith(dataset_id):
+                    file_path = os.path.join(upload_dir, fname)
+                    try:
+                        df, sheet_names, active_sheet = load_dataset_file(file_path)
+                        parts = fname.split("_", 1)
+                        orig_name = parts[1] if len(parts) > 1 else fname
+                        rec_session = DatasetSession(dataset_id=dataset_id, filename=orig_name, original_path=file_path)
+                        rec_session.original_df = df
+                        rec_session.active_df = df.copy()
+                        rec_session.sheet_names = sheet_names
+                        rec_session.active_sheet = active_sheet
+                        self._sessions[dataset_id] = rec_session
+                        return rec_session
+                    except Exception:
+                        pass
+        return None
 
     def delete_session(self, dataset_id: str) -> bool:
         session = self._sessions.pop(dataset_id, None)

@@ -47,6 +47,25 @@ class SlicerOption(BaseModel):
     min: Optional[float] = None
     max: Optional[float] = None
 
+class CorrelationPair(BaseModel):
+    var1: str
+    var2: str
+    pearson: float
+    spearman: Optional[float] = None
+    relationship: str
+    description: str
+    bivariate_data: List[Dict[str, Any]] = []
+
+class ScenarioConclusion(BaseModel):
+    scenario_title: str
+    executive_summary: str
+    primary_risk_driver: str
+    primary_protective_driver: str
+    vulnerable_cohort_description: str
+    resilient_cohort_description: str
+    recommended_interventions: List[Dict[str, str]]
+    driver_impacts: List[Dict[str, Any]]
+
 class DepressionAnalysisResponse(BaseModel):
     has_depression_data: bool
     target_column: Optional[str] = None
@@ -57,3 +76,5 @@ class DepressionAnalysisResponse(BaseModel):
     charts: List[FactorPrevalenceChart]
     lifestyle_gaps: Optional[LifestyleGapsChart] = None
     key_findings: List[str]
+    correlations: Optional[List[CorrelationPair]] = None
+    conclusion: Optional[ScenarioConclusion] = None

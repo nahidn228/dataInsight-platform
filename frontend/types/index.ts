@@ -220,6 +220,43 @@ export interface SlicerOption {
   max?: number | null;
 }
 
+export interface CorrelationPair {
+  var1: string;
+  var2: string;
+  pearson: number;
+  spearman?: number | null;
+  relationship: string;
+  description: string;
+  bivariate_data: {
+    x_bin: string;
+    avg_y: number;
+    count: number;
+    rate?: number;
+    y_label?: string;
+    rate_label?: string;
+  }[];
+}
+
+export interface ScenarioConclusion {
+  scenario_title: string;
+  executive_summary: string;
+  primary_risk_driver: string;
+  primary_protective_driver: string;
+  vulnerable_cohort_description: string;
+  resilient_cohort_description: string;
+  recommended_interventions: {
+    priority: string;
+    title: string;
+    detail: string;
+  }[];
+  driver_impacts: {
+    factor: string;
+    weight: number;
+    direction: "risk" | "protective";
+    impact_note: string;
+  }[];
+}
+
 export interface DepressionAnalysisResponse {
   has_depression_data: boolean;
   target_column?: string | null;
@@ -230,6 +267,8 @@ export interface DepressionAnalysisResponse {
   charts: FactorPrevalenceChart[];
   lifestyle_gaps?: LifestyleGapsChart | null;
   key_findings: string[];
+  correlations?: CorrelationPair[];
+  conclusion?: ScenarioConclusion | null;
 }
 
 export interface DynamicAnalysisConfig {
