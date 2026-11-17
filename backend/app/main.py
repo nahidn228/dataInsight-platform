@@ -11,7 +11,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows smooth development across frontend ports
+    allow_origin_regex=r"^https?://.*",  # Allows smooth cross-origin across localhost and Vercel domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
