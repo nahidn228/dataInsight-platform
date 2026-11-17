@@ -25,6 +25,7 @@ export const DatasetApi = {
     formData.append("file", file);
     const res = await api.post<DatasetMetadata>("/datasets/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      timeout: 120000, // 2 min — Render free tier cold start + file parse can be slow
     });
     return res.data;
   },

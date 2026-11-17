@@ -11,8 +11,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://.*",  # Allows smooth cross-origin across localhost and Vercel domains
-    allow_credentials=True,
+    allow_origins=["*"],          # Wildcard — required when allow_credentials=False
+    allow_credentials=False,      # Must be False with allow_origins=["*"] (CORS spec)
     allow_methods=["*"],
     allow_headers=["*"],
 )

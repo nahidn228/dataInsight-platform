@@ -50,11 +50,15 @@ export default function UploadPage() {
         router.push("/dashboard");
       }, 700);
     } catch (err: any) {
-      console.error(err);
-      setErrorMsg(
-        err.response?.data?.detail ||
-          "Failed to process dataset. Please ensure the file is valid and readable."
-      );
+      console.error("Upload error:", err);
+      // Surface the actual backend message if available
+      const detail =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        (typeof err?.response?.data === "string" ? err.response.data : null) ||
+        err?.message ||
+        "Failed to process dataset. Please ensure the file is valid and readable.";
+      setErrorMsg(detail);
     } finally {
       setIsUploading(false);
     }
