@@ -352,7 +352,67 @@ def generate_pdf_report(
             story.append(Paragraph("<b>Synthesized Analytical Observations:</b>", h3_style))
             for f in analysis.key_findings[:4]:
                 story.append(Paragraph(f"• {f}", bullet_style))
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 6))
+
+        # --- BIVARIATE CORRELATIONS & RELATIONSHIPS (TAB 2 IN REPORT) ---
+        if analysis.correlations and len(analysis.correlations) > 0:
+            story.append(Paragraph("<b>Bivariate Correlation Analysis & Lifestyle Associations:</b>", h3_style))
+            corr_rows = [["Factor Variable A", "Factor Variable B", "Pearson r", "Observed Relationship Gradient"]]
+            for cp in analysis.correlations[:4]:
+                r_str = f"+{cp.pearson:.3f}" if cp.pearson > 0 else f"{cp.pearson:.3f}"
+                corr_rows.append([
+                    cp.var1,
+                    cp.var2,
+                    r_str,
+                    cp.relationship
+                ])
+            t_corr = Table(corr_rows, colWidths=[130, 130, 80, 200])
+            t_corr.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4338ca')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+                ('FONTSIZE', (0, 0), (-1, -1), 7.5),
+                ('ALIGN', (2, 0), (2, -1), 'CENTER'),
+                ('TOPPADDING', (0, 0), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ]))
+            story.append(t_corr)
+            story.append(Spacer(1, 6))
+
+        # --- SCENARIO DIAGNOSTIC & STRATEGIC INTERVENTIONS (TAB 3 IN REPORT) ---
+        if analysis.conclusion:
+            conc = analysis.conclusion
+            story.append(Paragraph("<b>Executive Scenario Diagnostic & Strategic Interventions:</b>", h3_style))
+            story.append(Paragraph(f"• <b>Executive Summary:</b> {conc.executive_summary}", bullet_style))
+            story.append(Paragraph(f"• <b>Primary Risk Driver:</b> {conc.primary_risk_driver}", bullet_style))
+            story.append(Paragraph(f"• <b>Primary Protective Buffer:</b> {conc.primary_protective_driver}", bullet_style))
+            story.append(Paragraph(f"• <b>High Vulnerability Segment:</b> {conc.vulnerable_cohort_description}", bullet_style))
+            story.append(Paragraph(f"• <b>Resilient Cohort Benchmark:</b> {conc.resilient_cohort_description}", bullet_style))
+            story.append(Spacer(1, 4))
+
+            if conc.recommended_interventions and len(conc.recommended_interventions) > 0:
+                rec_rows = [["Priority", "Action Plan Title", "Practical Implementation Guidance"]]
+                for rec in conc.recommended_interventions:
+                    rec_rows.append([
+                        rec.get("priority", "Action"),
+                        rec.get("title", ""),
+                        rec.get("detail", "")
+                    ])
+                t_recs = Table(rec_rows, colWidths=[90, 170, 280])
+                t_recs.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0f766e')),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+                    ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+                    ('FONTSIZE', (0, 0), (-1, -1), 7.5),
+                    ('TOPPADDING', (0, 0), (-1, -1), 3),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+                ]))
+                story.append(t_recs)
+                story.append(Spacer(1, 8))
 
     # --- 2. DATASET ARCHITECTURE & HEALTH OVERVIEW ---
     story.append(Paragraph("2. Dataset Architecture & Health Overview", h2_style))

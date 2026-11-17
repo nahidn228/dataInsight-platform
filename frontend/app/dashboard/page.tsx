@@ -168,6 +168,14 @@ export default function DashboardOverviewPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [showConfig, setShowConfig] = useState<boolean>(false);
 
+  // Safety: clamp selected correlation pair index when filter alters candidate list
+  useEffect(() => {
+    const listLen = analysisData?.correlations?.length || 0;
+    if (listLen > 0 && selectedPairIndex >= listLen) {
+      setSelectedPairIndex(0);
+    }
+  }, [analysisData?.correlations?.length, selectedPairIndex]);
+
   // Initial load when datasetId changes
   useEffect(() => {
     if (!datasetId) return;
@@ -553,12 +561,12 @@ export default function DashboardOverviewPage() {
         {/* 3-TAB EXECUTIVE NAVIGATION BAR */}
         {/* ============================================================== */}
         <div
-          className="mt-6 flex flex-wrap items-center gap-2 border-b pb-2"
+          className="mt-6 flex flex-nowrap overflow-x-auto items-center gap-2 border-b pb-2 scrollbar-none"
           style={{ borderColor: "var(--border-subtle)" }}
         >
           <button
             onClick={() => setActiveTab("overview")}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-2xl transition border ${
+            className={`shrink-0 inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-2xl transition border ${
               activeTab === "overview"
                 ? "bg-indigo-600 text-white border-indigo-500 shadow-md"
                 : "border-transparent hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -570,7 +578,7 @@ export default function DashboardOverviewPage() {
 
           <button
             onClick={() => setActiveTab("insights")}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-2xl transition border ${
+            className={`shrink-0 inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-2xl transition border ${
               activeTab === "insights"
                 ? "bg-indigo-600 text-white border-indigo-500 shadow-md"
                 : "border-transparent hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -591,7 +599,7 @@ export default function DashboardOverviewPage() {
 
           <button
             onClick={() => setActiveTab("conclusions")}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-2xl transition border ${
+            className={`shrink-0 inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-2xl transition border ${
               activeTab === "conclusions"
                 ? "bg-indigo-600 text-white border-indigo-500 shadow-md"
                 : "border-transparent hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -1029,6 +1037,32 @@ export default function DashboardOverviewPage() {
                 </div>
               )}
             </div>
+
+            {/* Graceful Fallback for Empty Correlations */}
+            {correlations.length === 0 && (
+              <div
+                className="rounded-2xl p-8 text-center space-y-3"
+                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-subtle)" }}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl mx-auto bg-indigo-500/10 text-indigo-500">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+                <h3 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
+                  No Numerical Correlation Pairs Detected
+                </h3>
+                <p className="max-w-md mx-auto text-xs" style={{ color: "var(--text-secondary)" }}>
+                  The active filter selection has fewer than 10 numerical samples, or the dataset does not contain sufficient continuous variables for bivariate correlation analysis.
+                </p>
+                {hasActiveFilters && (
+                  <button
+                    onClick={handleResetFilters}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" /> Reset Filters
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Featured Relationship Card */}
             {activePair && (
@@ -1468,7 +1502,7 @@ export default function DashboardOverviewPage() {
 
                       <div
                         className="h-2 w-full rounded-full overflow-hidden"
-                        style={{ backgroundColor: "var(--bg-elevated)" }}
+                        style={{ backgroundColor: isDark ? "#1e293b" : "#e2e8f0" }}
                       >
                         <div
                           className="h-full rounded-full transition-all duration-500"

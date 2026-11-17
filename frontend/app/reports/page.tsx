@@ -57,15 +57,15 @@ export default function ReportsPage() {
       {/* Export Options Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* PDF Assessment Report */}
-        <div className="rounded-xl border border-sky-500/30 p-6 flex flex-col justify-between space-y-5 shadow-lg shadow-sky-500/5" style={{ backgroundColor: "var(--bg-surface)" }}>
+        <div className="rounded-xl border border-indigo-500/30 p-6 flex flex-col justify-between space-y-5 shadow-lg shadow-indigo-500/5" style={{ backgroundColor: "var(--bg-surface)" }}>
           <div className="space-y-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
               <FileText className="h-6 w-6" />
             </div>
             <h3 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Academic Assessment Report</h3>
             <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               Standardized report incorporating dataset architecture, quality indices, parametric
-              statistics tables, evidence-based discoveries, and methodological limitations.
+              statistics tables, bivariate correlations, executive scenario conclusions, and methodological limitations.
             </p>
           </div>
 
@@ -73,7 +73,7 @@ export default function ReportsPage() {
             href={DatasetApi.getExportUrl(datasetId, "pdf")}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-xs font-semibold text-white shadow hover:bg-sky-500 transition"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow hover:bg-indigo-500 transition"
           >
             <Download className="h-4 w-4" /> Download PDF Report
           </a>

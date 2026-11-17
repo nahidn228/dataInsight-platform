@@ -57,7 +57,7 @@ export default function InsightsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b pb-5" style={{ borderColor: "var(--border-subtle)" }}>
         <div>
-          <div className="flex items-center gap-2 text-xs text-amber-400">
+          <div className="flex items-center gap-2 text-xs font-semibold text-amber-600 dark:text-amber-400">
             <Lightbulb className="h-4 w-4" /> Rule-Based Statistical Inference Engine
           </div>
           <h1 className="mt-1 text-2xl font-bold tracking-tight md:text-3xl" style={{ color: "var(--text-primary)" }}>
@@ -131,7 +131,7 @@ export default function InsightsPage() {
               {insight.suggested_chart_type && (
                 <Link
                   href="/visualizations"
-                  className="text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1"
+                  className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 font-bold flex items-center gap-1 transition"
                 >
                   View in Studio <ArrowRight className="h-3 w-3" />
                 </Link>
